@@ -15,8 +15,8 @@ import com.avaje.ebean.EbeanServer;
  * @author mehdimaachou
  * 
  */
-public class Main {
-    private static final Logger logger = Logger.getLogger(Main.class);
+public class App {
+    private static final Logger logger = Logger.getLogger(App.class);
     private static final CommandLine commandLine = new CommandLine();
     private static CmdLineParser parser;
     private static EbeanServer server;
