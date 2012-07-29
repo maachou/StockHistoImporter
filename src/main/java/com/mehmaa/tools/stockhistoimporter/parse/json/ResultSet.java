@@ -1,7 +1,13 @@
-package com.mehmaa.tools.stockhistoimporter.json;
+package com.mehmaa.tools.stockhistoimporter.parse.json;
 
 import java.util.List;
 
+/**
+ * Model representing a Result Set from yahoo finance suggestion
+ * 
+ * @author mehdimaachou
+ * 
+ */
 public class ResultSet {
     private String Query;
     private List<Stock> Result;

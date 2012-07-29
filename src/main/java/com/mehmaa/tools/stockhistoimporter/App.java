@@ -7,8 +7,6 @@ import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import com.avaje.ebean.EbeanServer;
-
 /**
  * The entry class
  * 
@@ -19,7 +17,6 @@ public class App {
     private static final Logger logger = Logger.getLogger(App.class);
     private static final CommandLine commandLine = new CommandLine();
     private static CmdLineParser parser;
-    private static EbeanServer server;
 
     /**
      * The main method
@@ -32,28 +29,6 @@ public class App {
 	parseCommandLine(args);
     }
 
-    // public static EbeanServer getEbeanServer() {
-    // if (server == null) {
-    // ServerConfig config = new ServerConfig();
-    // config.setName("mysql");
-    // DataSourceConfig mysqlDb = new DataSourceConfig();
-    // mysqlDb.setDriver("com.mysql.jdbc.Driver");
-    // mysqlDb.setUsername("root");
-    // mysqlDb.setPassword("mehdiroot");
-    // mysqlDb.setUrl("jdbc:mysql://192.168.1.40:3306/StockHistoDB");
-    // mysqlDb.setHeartbeatSql("select count(*) from t_one");
-    // config.setDataSourceConfig(mysqlDb);
-    // config.setDdlGenerate(true);
-    // config.setDdlRun(true);
-    // config.setDefaultServer(false);
-    // config.setRegister(false);
-    // config.addClass(DailyQuote.class);
-    // config.addClass(StockEntity.class);
-    // server = EbeanServerFactory.create(config);
-    // }
-    // return server;
-    // }
-
     /**
      * Parsing the command line args
      * 
@@ -62,14 +37,16 @@ public class App {
     private static void parseCommandLine(final String[] args) {
 	parser = new CmdLineParser(commandLine);
 	try {
+	    /* Parsing input arguments */
 	    parser.parseArgument(args);
+	    /* process Help command */
 	    if (commandLine.isHelp()) {
 		printUsageAndExit();
 	    }
+	    /* process import symbol list command */
 	    if (commandLine.isSymbol() && !commandLine.getStockSymbols().isEmpty()) {
 		processStocks(commandLine.getStockSymbols());
 	    }
-
 	} catch (final CmdLineException e) {
 	    logger.error(e);
 	    printUsageAndExit();
@@ -86,7 +63,10 @@ public class App {
     }
 
     /**
-     * Method that processes the xml source file
+     * Method that processes a list of stock symbols
+     * 
+     * @param a
+     *            list of stock symboles
      */
     private static void processStocks(final List<String> stockSymbols) {
 	StockQuoteImporter stockImporter = StockQuoteImporter.getInstance();

@@ -1,9 +1,7 @@
 package com.mehmaa.tools.stockhistoimporter.model;
 
-import java.math.BigDecimal;
 import java.util.Date;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
@@ -12,46 +10,44 @@ import javax.persistence.Table;
 
 import com.avaje.ebean.validation.NotNull;
 
+/**
+ * Model representing daily stock quotes
+ * 
+ * @author mehdimaachou
+ * 
+ */
 @Entity
-@Table(name = "STOCK_HISTO_QUOTES")
+@Table(name = "T_STOCK_HISTO_QUOTES")
 public class DailyQuote {
 
     @Id
-    @Column(name = "ID")
-    Short id;
+    Long id;
 
-    @Column(name = "Q_DATE")
     private Date date;
 
-    @Column(name = "Q_OPEN")
-    private BigDecimal open;
+    private double open;
 
-    @Column(name = "Q_HIGH")
-    private BigDecimal high;
+    private double high;
 
-    @Column(name = "Q_LOW")
-    private BigDecimal low;
+    private double low;
 
-    @Column(name = "Q_CLOSE")
-    private BigDecimal close;
+    private double close;
 
-    @Column(name = "Q_VOLUME")
-    private BigDecimal volume;
+    private int volume;
 
-    @Column(name = "Q_ADJCLOSE")
-    private BigDecimal adjClose;
+    private double adjClose;
 
     @NotNull
     @ManyToOne
-    @JoinColumn(name = "STOCK")
+    @JoinColumn(name = "stock_id")
     StockEntity stock;
 
     public DailyQuote() {
 
     }
 
-    public DailyQuote(final Date date, final BigDecimal open, final BigDecimal high, final BigDecimal low,
-	    final BigDecimal close, final BigDecimal volume, final BigDecimal adjClose) {
+    public DailyQuote(final Date date, final double open, final double high, final double low, final double close,
+	    final int volume, final double adjClose) {
 	this.date = date;
 	this.open = open;
 	this.high = high;
@@ -61,11 +57,11 @@ public class DailyQuote {
 	this.adjClose = adjClose;
     }
 
-    public Short getId() {
+    public Long getId() {
 	return id;
     }
 
-    public void setId(Short id) {
+    public void setId(Long id) {
 	this.id = id;
     }
 
@@ -77,51 +73,51 @@ public class DailyQuote {
 	this.date = date;
     }
 
-    public BigDecimal getOpen() {
+    public double getOpen() {
 	return open;
     }
 
-    public void setOpen(BigDecimal open) {
+    public void setOpen(double open) {
 	this.open = open;
     }
 
-    public BigDecimal getHigh() {
+    public double getHigh() {
 	return high;
     }
 
-    public void setHigh(BigDecimal high) {
+    public void setHigh(double high) {
 	this.high = high;
     }
 
-    public BigDecimal getLow() {
+    public double getLow() {
 	return low;
     }
 
-    public void setLow(BigDecimal low) {
+    public void setLow(double low) {
 	this.low = low;
     }
 
-    public BigDecimal getClose() {
+    public double getClose() {
 	return close;
     }
 
-    public void setClose(BigDecimal close) {
+    public void setClose(double close) {
 	this.close = close;
     }
 
-    public BigDecimal getVolume() {
+    public int getVolume() {
 	return volume;
     }
 
-    public void setVolume(BigDecimal volume) {
+    public void setVolume(int volume) {
 	this.volume = volume;
     }
 
-    public BigDecimal getAdjClose() {
+    public double getAdjClose() {
 	return adjClose;
     }
 
-    public void setAdjClose(BigDecimal adjClose) {
+    public void setAdjClose(double adjClose) {
 	this.adjClose = adjClose;
     }
 

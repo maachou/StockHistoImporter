@@ -3,7 +3,6 @@ package com.mehmaa.tools.stockhistoimporter.model;
 import java.sql.Timestamp;
 import java.util.List;
 
-import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -14,7 +13,7 @@ import com.avaje.ebean.validation.Length;
 import com.avaje.ebean.validation.NotNull;
 
 /**
- * TODO
+ * Data model representing a Stock
  * 
  * @author mehdimaachou
  * 
@@ -25,19 +24,15 @@ import com.avaje.ebean.validation.NotNull;
 public class StockEntity {
 
     @Id
-    @Column(name = "ID")
-    Short id;
+    Long id;
 
-    @Column(name = "SYMBOL")
     @NotNull
     @Length(max = 20)
     String symbol;
 
-    @Column(name = "COMPANY_NAME")
     @NotNull
     String companyName;
 
-    @Column(name = "ADDED_TIME")
     @CreatedTimestamp
     Timestamp addedTime;
 
@@ -53,11 +48,11 @@ public class StockEntity {
 	this.companyName = companyName;
     }
 
-    public Short getId() {
+    public Long getId() {
 	return id;
     }
 
-    public void setId(Short id) {
+    public void setId(Long id) {
 	this.id = id;
     }
 

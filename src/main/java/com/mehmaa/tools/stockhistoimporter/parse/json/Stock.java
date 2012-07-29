@@ -1,5 +1,11 @@
-package com.mehmaa.tools.stockhistoimporter.json;
+package com.mehmaa.tools.stockhistoimporter.parse.json;
 
+/**
+ * Data model representing a stock from yahoo finance suggestion
+ * 
+ * @author mehdimaachou
+ * 
+ */
 public class Stock {
 
     private String exch;

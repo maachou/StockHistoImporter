@@ -1,5 +1,11 @@
-package com.mehmaa.tools.stockhistoimporter.json;
+package com.mehmaa.tools.stockhistoimporter.parse.json;
 
+/**
+ * Pojo representing a query result from yahoo finance suggestion
+ * 
+ * @author mehdimaachou
+ * 
+ */
 public class QueryResult {
 
     private ResultSet ResultSet;
