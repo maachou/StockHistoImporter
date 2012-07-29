@@ -1,20 +1,18 @@
 package com.mehmaa.tools.stockhistoimporter;
 
+import static org.junit.Assert.fail;
+
+import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.Date;
+import java.util.Properties;
 
-import org.joda.time.DateTime;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import com.avaje.ebean.Ebean;
-import com.avaje.ebean.Query;
-import com.avaje.ebean.RawSql;
-import com.avaje.ebean.RawSqlBuilder;
 import com.mehmaa.tools.stockhistoimporter.model.DailyQuote;
-import com.mehmaa.tools.stockhistoimporter.model.DailyQuotesAggregate;
 import com.mehmaa.tools.stockhistoimporter.model.StockEntity;
 import com.mehmaa.tools.stockhistoimporter.parse.json.Stock;
 
@@ -58,7 +56,7 @@ public class StockQuoteImporterTest {
     }
 
     @Test
-    public void SaveDailyStockHistoGoogle() throws Exception {
+    public void SaveDailyStockHistoGoogleTest() throws Exception {
 	StockQuoteImporter.getInstance().importStockData("GOOG");
 	StockEntity googleStockEntity = Ebean.find(StockEntity.class).where().eq("symbol", "GOOG").findUnique();
 	Assert.assertNotNull(googleStockEntity);
@@ -67,42 +65,28 @@ public class StockQuoteImporterTest {
     }
 
     @Test
-    public void updatingHistoQuotesTest() {
-	/* Creating a test symbol */
-	StockEntity aStock = new StockEntity("GOOG", "Google Inc.");
-	Ebean.save(aStock);
-	DateTime dt = new DateTime(2012, 6, 1, 20, 0);
-	Date dateDailyQuote01 = (Date) dt.toDate();
-	/* Creating quote 1 */
-	DailyQuote dailyQuote01 = new DailyQuote(dateDailyQuote01, new BigDecimal(34.5).doubleValue(), new BigDecimal(
-		56.5).doubleValue(), new BigDecimal(20.9).doubleValue(), new BigDecimal(40).doubleValue(), 20000,
-		new BigDecimal(340.5).doubleValue());
-	dailyQuote01.setStock(aStock);
-	Ebean.save(dailyQuote01);
-	/* Creating quote 2 */
-	dt = new DateTime(2012, 7, 21, 20, 0);
-	Date dateDailyQuote02 = (Date) dt.toDate();
-	DailyQuote dailyQuote02 = new DailyQuote(dateDailyQuote02, new BigDecimal(20.5).doubleValue(), new BigDecimal(
-		100.5).doubleValue(), new BigDecimal(20.9).doubleValue(), new BigDecimal(40).doubleValue(), 20000,
-		new BigDecimal(340.5).doubleValue());
-	dailyQuote02.setStock(aStock);
-	Ebean.save(dailyQuote02);
-
-	String sql = "select max(q.date) as lastQuoteDate from T_STOCK_HISTO_QUOTES q";
-	RawSql rawSql = RawSqlBuilder.parse(sql).create();
-	Query<DailyQuotesAggregate> query = Ebean.find(DailyQuotesAggregate.class);
-	query.setRawSql(rawSql);
-	DailyQuotesAggregate result = query.findUnique();
-	Date lastDate = result.getLastQuoteDate();
-
-	Assert.assertTrue(lastDate.compareTo(dateDailyQuote02) == 0);
-
-    }
-
-    @Test
     public void getSymbolDataFromYahooTest() {
 	String expectedSymbol = "GOOG";
 	Stock resultParsing = StockQuoteImporter.getInstance().getSymbolDataFromYahoo(expectedSymbol);
 	Assert.assertTrue(resultParsing.getSymbol().equals(expectedSymbol));
+    }
+
+    @Test
+    public void readUrlTest() {
+	Properties prop = null;
+	try {
+	    prop = new Properties();
+	    InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("unittest.properties");
+	    prop.load(in);
+	    in.close();
+	} catch (Exception e) {
+	    fail("Failed to load properties: " + e.getMessage());
+	}
+
+	String expectedResult = prop.getProperty("yahoo.finance.suggest.response");
+	String yahooFinanceSuggUrl = "http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=GOOG&callback=YAHOO.Finance.SymbolSuggest.ssCallback";
+	String result = StockQuoteImporter.getInstance().readUrl(yahooFinanceSuggUrl);
+	System.out.println(expectedResult);
+	Assert.assertTrue(expectedResult.equals(result));
     }
 }

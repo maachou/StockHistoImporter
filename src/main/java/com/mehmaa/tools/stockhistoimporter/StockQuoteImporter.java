@@ -239,7 +239,7 @@ public class StockQuoteImporter {
      * @param urlString
      * @return
      */
-    private static String readUrl(String urlString) {
+    public String readUrl(String urlString) {
 	BufferedReader reader = null;
 	String result = null;
 	try {
