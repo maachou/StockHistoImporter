@@ -1,11 +1,7 @@
 package com.mehmaa.tools.stockhistoimporter;
 
-import static org.junit.Assert.fail;
-
-import java.io.InputStream;
 import java.math.BigDecimal;
 import java.util.Calendar;
-import java.util.Properties;
 
 import org.junit.Assert;
 import org.junit.Before;
@@ -61,7 +57,6 @@ public class StockQuoteImporterTest {
 	StockEntity googleStockEntity = Ebean.find(StockEntity.class).where().eq("symbol", "GOOG").findUnique();
 	Assert.assertNotNull(googleStockEntity);
 	Assert.assertTrue(googleStockEntity.getDailyQuotes().size() > 0);
-	System.out.println("total quotes: " + googleStockEntity.getDailyQuotes().size());
     }
 
     @Test
@@ -71,22 +66,4 @@ public class StockQuoteImporterTest {
 	Assert.assertTrue(resultParsing.getSymbol().equals(expectedSymbol));
     }
 
-    @Test
-    public void readUrlTest() {
-	Properties prop = null;
-	try {
-	    prop = new Properties();
-	    InputStream in = Thread.currentThread().getContextClassLoader().getResourceAsStream("unittest.properties");
-	    prop.load(in);
-	    in.close();
-	} catch (Exception e) {
-	    fail("Failed to load properties: " + e.getMessage());
-	}
-
-	String expectedResult = prop.getProperty("yahoo.finance.suggest.response");
-	String yahooFinanceSuggUrl = "http://d.yimg.com/autoc.finance.yahoo.com/autoc?query=GOOG&callback=YAHOO.Finance.SymbolSuggest.ssCallback";
-	String result = StockQuoteImporter.getInstance().readUrl(yahooFinanceSuggUrl);
-	System.out.println(expectedResult);
-	Assert.assertTrue(expectedResult.equals(result));
-    }
 }

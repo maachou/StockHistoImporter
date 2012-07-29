@@ -43,6 +43,8 @@ public class StockQuoteImporter {
     private YConnectionManager connectionManager;
     private Yapi yapi;
     private static int YAHOO_API_MAX_CONNECTION = 5;
+    private static int TOTAL_YEARS_HISTORY_PERIOD = 10; // 10 years of
+							// historical data
     /* Yahoo suggestion parameters */
     private static String YAHOO_STOCK_SUGGESTION_BASE_URL = "http://d.yimg.com/autoc.finance.yahoo.com/autoc";
     private StringBuilder yahooServiceUrlBuilder;
@@ -87,11 +89,24 @@ public class StockQuoteImporter {
 	    if (stockEntity == null) {
 		logger.debug("Stock symbol doesn't exist in the DB. Creating the new Stock in db...");
 		stockEntity = new StockEntity(stockData.getSymbol(), stockData.getName());
+		logger.debug("Saving data...");
 		Ebean.save(stockEntity);
 		saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY);
 	    } else {
 		logger.debug("Stock symbol exist in the DB.updating quotes...");
-		updatingHistoQuotes(stockEntity, Yapi.HIST_DAYLY);
+		/* Getting the last quote time */
+		String sql = "select max(q.date) as lastQuoteDate from T_STOCK_HISTO_QUOTES q";
+		RawSql rawSql = RawSqlBuilder.parse(sql).create();
+		Query<DailyQuotesAggregate> query = Ebean.find(DailyQuotesAggregate.class);
+		query.setRawSql(rawSql);
+		DailyQuotesAggregate result = query.findUnique();
+		Date lastDateDb = result.getLastQuoteDate();
+		if (lastDateDb != null) {
+		    updatingHistoQuotes(stockEntity, lastDateDb, Yapi.HIST_DAYLY);
+		} else {
+		    saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY);
+		}
+
 	    }
 	} else {
 	    logger.warn(stockSymbol + " is not a Valid symbol!");
@@ -135,16 +150,13 @@ public class StockQuoteImporter {
     private void saveHistoQuotesFromBeginning(final StockEntity stockEntity, final String dataGranularity) {
 	if (stockEntity != null && stockEntity.getSymbol() != null) {
 	    YSymbol symbol = new YSymbol(stockEntity.getSymbol());
-	    Calendar cal = Calendar.getInstance();
-	    Date endDate = cal.getTime();
-	    cal.clear();
-	    cal.set(1900, 0, 1);// to make sure we catch all yahoo finance
-				// historical data for this given symbol.
-	    Date startDate = cal.getTime();
+	    Date endDate = (Calendar.getInstance()).getTime();
+	    Date startDate = (new DateTime(endDate)).minusYears(TOTAL_YEARS_HISTORY_PERIOD).toDate();
 	    YQuote yquotes = yapi.getHistoric(symbol, startDate, endDate, dataGranularity);
 	    ArrayList<DailyQuote> dailyQuotes = convertYQuotesToQuotes(yquotes.getHistorics(), stockEntity);
 	    logger.debug(dailyQuotes.size() + " historical quotes retreived for " + stockEntity.getCompanyName() + "("
 		    + stockEntity.getSymbol() + ")");
+	    logger.debug("Saving data...");
 	    Ebean.save(dailyQuotes);
 	    logger.debug("Historical data for " + stockEntity.getSymbol() + "(" + stockEntity.getCompanyName()
 		    + ") was saved successfully.");
@@ -156,15 +168,8 @@ public class StockQuoteImporter {
      * 
      * @param stockEntity
      */
-    private void updatingHistoQuotes(final StockEntity stockEntity, final String dataGranularity) {
-	if (stockEntity != null && stockEntity.getSymbol() != null) {
-	    /* Getting the last quote time */
-	    String sql = "select max(q.date) as lastQuoteDate from T_STOCK_HISTO_QUOTES q";
-	    RawSql rawSql = RawSqlBuilder.parse(sql).create();
-	    Query<DailyQuotesAggregate> query = Ebean.find(DailyQuotesAggregate.class);
-	    query.setRawSql(rawSql);
-	    DailyQuotesAggregate result = query.findUnique();
-	    Date lastDateDb = result.getLastQuoteDate();
+    private void updatingHistoQuotes(final StockEntity stockEntity, final Date lastDateDb, final String dataGranularity) {
+	if (stockEntity != null && stockEntity.getSymbol() != null && lastDateDb != null) {
 	    DateTime lastDateDbTime = new DateTime(lastDateDb);
 
 	    DateTime endDateHisto = new DateTime(Calendar.getInstance().getTime());
@@ -189,6 +194,7 @@ public class StockQuoteImporter {
 		ArrayList<DailyQuote> dailyQuotes = convertYQuotesToQuotes(yHistoList, stockEntity);
 		logger.debug(dailyQuotes.size() + " historical quotes retreived for " + stockEntity.getCompanyName()
 			+ "(" + stockEntity.getSymbol() + ")");
+		logger.debug("Saving data...");
 		Ebean.save(dailyQuotes);
 		logger.debug("Historical data for " + stockEntity.getSymbol() + "(" + stockEntity.getCompanyName()
 			+ ") was saved successfully.");
