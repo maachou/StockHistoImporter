@@ -23,6 +23,9 @@ public class CommandLine {
     @Argument
     private List<String> stockSymbols = new ArrayList<String>();
 
+    @Option(name = "--history", usage = "Total in years of historical data", aliases = { "-y" })
+    private int yearsHistory;
+
     public boolean isSymbol() {
 	return symbol;
     }
@@ -45,5 +48,13 @@ public class CommandLine {
 
     public void setStockSymbols(List<String> stockSymbols) {
 	this.stockSymbols = stockSymbols;
+    }
+
+    public int getYearsHistory() {
+	return yearsHistory;
+    }
+
+    public void setYearsHistory(int yearsHistory) {
+	this.yearsHistory = yearsHistory;
     }
 }

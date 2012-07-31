@@ -53,7 +53,7 @@ public class StockQuoteImporterTest {
 
     @Test
     public void SaveDailyStockHistoGoogleTest() throws Exception {
-	StockQuoteImporter.getInstance().importStockData("GOOG");
+	StockQuoteImporter.getInstance().importStockData("GOOG", 10);
 	StockEntity googleStockEntity = Ebean.find(StockEntity.class).where().eq("symbol", "GOOG").findUnique();
 	Assert.assertNotNull(googleStockEntity);
 	Assert.assertTrue(googleStockEntity.getDailyQuotes().size() > 0);

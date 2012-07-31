@@ -11,7 +11,6 @@ import java.util.List;
 
 import org.apache.log4j.Logger;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
 
 import com.avaje.ebean.Ebean;
 import com.avaje.ebean.Query;
@@ -42,9 +41,9 @@ public class StockQuoteImporter {
     /* Yahoo finance API parameters */
     private YConnectionManager connectionManager;
     private Yapi yapi;
-    private static int YAHOO_API_MAX_CONNECTION = 5;
-    private static int TOTAL_YEARS_HISTORY_PERIOD = 10; // 10 years of
-							// historical data
+    private static int YAHOO_API_MAX_CONNECTION = 4;
+    // private static int TOTAL_YEARS_HISTORY_PERIOD = 10; // 10 years of
+    // historical data
     /* Yahoo suggestion parameters */
     private static String YAHOO_STOCK_SUGGESTION_BASE_URL = "http://d.yimg.com/autoc.finance.yahoo.com/autoc";
     private StringBuilder yahooServiceUrlBuilder;
@@ -79,7 +78,7 @@ public class StockQuoteImporter {
      * 
      * @param stockSymbol
      */
-    public void importStockData(final String stockSymbol) {
+    public void importStockData(final String stockSymbol, final int periodYears) {
 	logger.debug("Cheking stock symbol " + stockSymbol + "...");
 	Stock stockData = getSymbolDataFromYahoo(stockSymbol);
 	if (stockData != null) {
@@ -91,7 +90,7 @@ public class StockQuoteImporter {
 		stockEntity = new StockEntity(stockData.getSymbol(), stockData.getName());
 		logger.debug("Saving data...");
 		Ebean.save(stockEntity);
-		saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY);
+		saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY, periodYears);
 	    } else {
 		logger.debug("Stock symbol exist in the DB.updating quotes...");
 		/* Getting the last quote time */
@@ -104,7 +103,7 @@ public class StockQuoteImporter {
 		if (lastDateDb != null) {
 		    updatingHistoQuotes(stockEntity, lastDateDb, Yapi.HIST_DAYLY);
 		} else {
-		    saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY);
+		    saveHistoQuotesFromBeginning(stockEntity, Yapi.HIST_DAYLY, periodYears);
 		}
 
 	    }
@@ -147,11 +146,12 @@ public class StockQuoteImporter {
      * @param stockId
      * @return
      */
-    private void saveHistoQuotesFromBeginning(final StockEntity stockEntity, final String dataGranularity) {
+    private void saveHistoQuotesFromBeginning(final StockEntity stockEntity, final String dataGranularity,
+	    final int periodYears) {
 	if (stockEntity != null && stockEntity.getSymbol() != null) {
 	    YSymbol symbol = new YSymbol(stockEntity.getSymbol());
 	    Date endDate = (Calendar.getInstance()).getTime();
-	    Date startDate = (new DateTime(endDate)).minusYears(TOTAL_YEARS_HISTORY_PERIOD).toDate();
+	    Date startDate = (new DateTime(endDate)).minusYears(periodYears).toDate();
 	    YQuote yquotes = yapi.getHistoric(symbol, startDate, endDate, dataGranularity);
 	    ArrayList<DailyQuote> dailyQuotes = convertYQuotesToQuotes(yquotes.getHistorics(), stockEntity);
 	    logger.debug(dailyQuotes.size() + " historical quotes retreived for " + stockEntity.getCompanyName() + "("
@@ -172,34 +172,23 @@ public class StockQuoteImporter {
 	if (stockEntity != null && stockEntity.getSymbol() != null && lastDateDb != null) {
 	    DateTime lastDateDbTime = new DateTime(lastDateDb);
 
-	    DateTime endDateHisto = new DateTime(Calendar.getInstance().getTime());
-	    DateTime lastdateDbPlus1Day = lastDateDbTime.plusDays(1);
+	    DateTime endDateHisto = new DateTime();
 
 	    YSymbol symbol = new YSymbol(stockEntity.getSymbol());
-
-	    if (endDateHisto.compareTo(lastDateDbTime) > 0) {
-		YQuote yquotes = null;
-		ArrayList<YHistoric> yHistoList = null;
-		if (Days.daysBetween(lastdateDbPlus1Day, endDateHisto).getDays() == 0) {
-		    yquotes = yapi.getHistoric(symbol, lastDateDbTime.toDate(), endDateHisto.toDate(), dataGranularity);
-		    // retreive current day quote
-		    // FIXME : find a cleaner way to retreive the current day
-		    // quote without too much turnarounds.
-		    yHistoList.remove(yHistoList.size() - 1);
-		} else {
-		    yquotes = yapi.getHistoric(symbol, lastdateDbPlus1Day.toDate(), endDateHisto.toDate(),
-			    dataGranularity);
-		}
-		yHistoList = yquotes.getHistorics();
+	    YQuote yquotes = yapi.getHistoric(symbol, lastDateDbTime.toDate(), endDateHisto.toDate(), dataGranularity);
+	    ArrayList<YHistoric> yHistoList = yquotes.getHistorics();
+	    int yHistoListSize = yHistoList.size();
+	    if (!yHistoList.isEmpty()) {
+		// remove the first one (already in db).
+		yHistoList.remove(yHistoListSize - 1);
+		logger.debug(yHistoListSize > 0 ? yHistoListSize - 1 : yHistoListSize
+			+ " NEW historical quotes retreived for " + stockEntity.getCompanyName() + "("
+			+ stockEntity.getSymbol() + ")");
 		ArrayList<DailyQuote> dailyQuotes = convertYQuotesToQuotes(yHistoList, stockEntity);
-		logger.debug(dailyQuotes.size() + " historical quotes retreived for " + stockEntity.getCompanyName()
-			+ "(" + stockEntity.getSymbol() + ")");
 		logger.debug("Saving data...");
-		Ebean.save(dailyQuotes);
-		logger.debug("Historical data for " + stockEntity.getSymbol() + "(" + stockEntity.getCompanyName()
-			+ ") was saved successfully.");
-	    } else {
-		logger.warn("Warning : The last quote present in db has a time superior or equal to current time !!! No need to update.");
+		if (!dailyQuotes.isEmpty()) {
+		    Ebean.save(dailyQuotes);
+		}
 	    }
 	}
     }
