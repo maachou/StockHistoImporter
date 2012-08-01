@@ -12,7 +12,7 @@ If the stock already exists in the database he update it with fresh data.
 
 ## Configurations:
 ### ebeans.properties:
-* Database parameters : In my case I used a MySQL database but you are free to choose between an H2, Oracle or PostgreSQL database.
+* **Database parameters:** In my case I used a MySQL database but you are free to choose between an H2, Oracle or PostgreSQL database.
 Depending on your choice you have to setup your default datasource:
 
 ```properties
@@ -27,7 +27,7 @@ datasource.mysql.password=DB_PASSWORD
 datasource.mysql.databaseUrl=jdbc:mysql://DB_IP:DB_PORT/DB_NAME
 ```
 
-* Database model generation: In order to generate properly the tables, we have to activate this lines:
+* **Database model generation:** In order to generate properly the tables, we have to activate this lines:
 
 ```properties
 ebean.ddl.generate=true
@@ -36,7 +36,7 @@ ebean.ddl.run=true
 After running for the first time the generated Jar:  2 tables will be created T_STOCKS and T_STOCKS_HISTO_QUOTES.
 We should now disable the above 2 options and regenerate our definitive jar.
 
-* Model classes location : You should specify where Ebean will find the model classes
+* **Model classes location:** You should specify where Ebean will find the model classes
 
 ```properties
 ebean.search.jars=StockHistoImporter-1.0-SNAPSHOT.jar
