@@ -1,0 +1,134 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Stockhistoimporter by maachou</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>Stockhistoimporter</h1>
+        <p>Historical Stock quotes importer</p>
+        <p class="view"><a href="https://github.com/maachou/StockHistoImporter">View the Project on GitHub <small>maachou/StockHistoImporter</small></a></p>
+        <ul>
+          <li><a href="https://github.com/maachou/StockHistoImporter/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/maachou/StockHistoImporter/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/maachou/StockHistoImporter">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <h2>Description:</h2>
+
+<p>StockHistoImporter is a command line tool that imports historical stock quotes into a database for a given stock symbol.</p>
+
+<h2>Application workflow:</h2>
+
+<p>This tool takes as an input a list of stock symbols and perform those following operations in order:</p>
+
+<ol>
+<li>Check the validity of a symbol.</li>
+<li>If the symbol is valid and does not exist in the database (T_STOCKS) he create the associated stock from the info retrieved from yahoo suggestion API and then store it in the database.</li>
+<li>Retrieve and parse the last X years of historical quote data using Yahoo finance API (I found an implementation developed by <a href="http://www.hans-dieter-thiel.de/YahooFinance.96.0.html?&amp;L=1">Hans-Dietel Thiel Consulting limited</a>).</li>
+<li>Store the results into the database(T_STOCK_HISTO_QUOTES).</li>
+</ol><p>If the stock already exists in the database he update it with fresh data.</p>
+
+<h2>Configurations:</h2>
+
+<h3>ebeans.properties:</h3>
+
+<ul>
+<li>
+<strong>Database parameters:</strong> In my case I used a MySQL database but you are free to choose between an H2, Oracle or PostgreSQL database.
+Depending on your choice you have to setup your default datasource:</li>
+</ul><div class="highlight"><pre><span class="na">datasource.default</span><span class="o">=</span><span class="s">mysql  # MYSQL database (possible values: h2,ora,pg,mysql).</span>
+</pre></div>
+
+<p>Then setup the database name , server hostname, port, user and password:</p>
+
+<div class="highlight"><pre><span class="na">datasource.mysql.username</span><span class="o">=</span><span class="s">DB_USERNAME</span>
+<span class="na">datasource.mysql.password</span><span class="o">=</span><span class="s">DB_PASSWORD</span>
+<span class="na">datasource.mysql.databaseUrl</span><span class="o">=</span><span class="s">jdbc:mysql://DB_IP:DB_PORT/DB_NAME</span>
+</pre></div>
+
+<ul>
+<li>
+<strong>Database model generation:</strong> In order to generate properly the tables, we have to activate this lines:</li>
+</ul><div class="highlight"><pre><span class="na">ebean.ddl.generate</span><span class="o">=</span><span class="s">true</span>
+<span class="na">ebean.ddl.run</span><span class="o">=</span><span class="s">true</span>
+</pre></div>
+
+<p>After running for the first time the generated Jar:  2 tables will be created T_STOCKS and T_STOCKS_HISTO_QUOTES.
+We should now disable the above 2 options and regenerate our definitive jar.</p>
+
+<ul>
+<li>
+<strong>Model classes location:</strong> You should specify where Ebean will find the model classes</li>
+</ul><div class="highlight"><pre><span class="na">ebean.search.jars</span><span class="o">=</span><span class="s">StockHistoImporter-1.0-SNAPSHOT.jar</span>
+</pre></div>
+
+<p>If you decide to change the name of the generated jar don't forget to update this parameter.</p>
+
+<h3>Yahoo Finance API maven dependency:</h3>
+
+<p>I used in this project The Yahoo finance API implementation developed by  Hans-Dietel Thiel Consulting limited. 
+Since  the project is not present in maven central repository.
+You will have to checkout the project and compile it on your local machine so the project can compile successfully. </p>
+
+<p>To checkout the project execute the command :</p>
+
+<div class="highlight"><pre>svn co https://yahoofinanceapi.svn.sourceforge.net/svnroot/yahoofinanceapi yahoofinanceapi
+</pre></div>
+
+<p>Then execute a mvn install in the trunk folder.</p>
+
+<h2>Build&amp;Run:</h2>
+
+<ul>
+<li>To build the application just run the script build.sh</li>
+<li>The application take as input 2 parameters: 
+
+<ul>
+<li>Stock symbols list with the option -s : ex.  -s GOOG YHOO</li>
+<li>Total years of historical data with the option -y : ex. -y 10</li>
+</ul>
+</li>
+</ul><p>An example of running the application would be:</p>
+
+<div class="highlight"><pre>java -jar target/StockHistoImporter-1.0-SNAPSHOT.jar -s YHOO GOOG -y 10
+</pre></div>
+
+<h2>Technologies used:</h2>
+
+<ul>
+<li>Java.</li>
+<li>
+<a href="http://www.avaje.org/">Avaje Ebean ORM persistence Layer</a>.</li>
+<li>
+<a href="http://finance.yahoo.com/">Yahoo Finance API</a>.</li>
+<li>
+<a href="http://code.google.com/p/google-gson/">Gson</a>.</li>
+<li>
+<a href="http://joda-time.sourceforge.net/">Joda time</a>.</li>
+<li>
+<a href="http://www.junit.org/">Junit</a>.</li>
+</ul>
+      </section>
+    </div>
+    <footer>
+      <p>Project maintained by <a href="https://github.com/maachou">maachou</a></p>
+      <p>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></p>
+    </footer>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+    
+  </body>
+</html>
